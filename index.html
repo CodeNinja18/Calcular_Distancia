@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de Distancia</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Calculadora de Distancia</h1>
+
+    <form id="distanceForm">
+      <label for="startLocation">Lugar de Partida:</label>
+      <input type="text" id="startLocation" required />
+
+      <label for="endLocation">Lugar de Llegada:</label>
+      <input type="text" id="endLocation" required />
+
+      <!-- Agregamos un campo oculto para la distancia -->
+      <input type="hidden" id="distanceValue" name="distanceInKm" />
+
+      <button type="button" onclick="calculateDistance()">
+        Calcular Distancia
+      </button>
+    </form>
+
+    <div id="resultContainer">
+      <h2>Resultado de la Distancia</h2>
+      <div id="result"></div>
+    </div>
+
+    <h2>Selecciona tu servicio</h2>
+
+    <div class="serviceContainer">
+      <div class="serviceSection">
+        <div class="serviceInfo">
+          <p>Precio por metro: 0.5</p>
+          <p>Total: $00</p>
+        </div>
+        <button class="serviceButton" onclick="selectService('economico')">
+           <a href="economico.html">Servicio Económico</a>
+        </button>
+      </div>
+
+      <div class="serviceSection">
+        <div class="serviceInfo">
+          <p>Precio por metro: 1.5</p>
+          <p>Total: $00</p>
+        </div>
+        <button class="serviceButton" onclick="selectService('exclusivo')">
+          <a href="exclusivo.html">Servicio Exclusivo</a>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function calculateDistance() {
+      var startLocation = document.getElementById('startLocation').value;
+      var endLocation = document.getElementById('endLocation').value;
+
+      var service = new google.maps.DistanceMatrixService();
+      service.getDistanceMatrix(
+        {
+          origins: [startLocation],
+          destinations: [endLocation],
+          travelMode: 'DRIVING',
+          unitSystem: google.maps.UnitSystem.METRIC,
+        },
+        function (response, status) {
+          if (status === 'OK' && response.rows[0].elements[0].status === 'OK') {
+            var distance = response.rows[0].elements[0].distance.value;
+            var distanceInKm = distance / 1000; // Convertir metros a kilómetros
+
+            // Actualizamos el campo oculto con el valor de la distancia
+            document.getElementById('distanceValue').value = distanceInKm;
+
+            updateServiceInfo(distanceInKm);
+          } else {
+            console.error('Error al calcular la distancia:', status, response);
+            document.getElementById('result').innerHTML =
+              'Error al calcular la distancia. Asegúrate de ingresar ubicaciones válidas.';
+          }
+        }
+      );
+    }
+
+    function updateServiceInfo(distance) {
+      var pricePerMeterEconomico = 0.5;
+      var pricePerMeterExclusivo = 1.5;
+
+      var totalEconomico = distance * pricePerMeterEconomico;
+      var totalExclusivo = distance * pricePerMeterExclusivo;
+
+      document.getElementById('result').innerHTML =
+        'La distancia es de ' + distance.toFixed(2) + ' kilómetros.';
+      document.getElementById('resultContainer').style.display = 'block';
+
+      document
+        .querySelectorAll('.serviceInfo')
+        .forEach(function (info, index) {
+          var priceElement = info.querySelector('p:nth-child(1)');
+          var totalElement = info.querySelector('p:nth-child(2)');
+
+          if (index === 0) {
+            priceElement.textContent = 'Precio por metro: ' + pricePerMeterEconomico;
+            totalElement.textContent = 'Total: $' + totalEconomico.toFixed(2);
+          } else if (index === 1) {
+            priceElement.textContent = 'Precio por metro: ' + pricePerMeterExclusivo;
+            totalElement.textContent = 'Total: $' + totalExclusivo.toFixed(2);
+          }
+        });
+    }
+
+    function selectService(serviceType) {
+      alert('Has seleccionado el Servicio ' + serviceType + '.');
+      // Puedes realizar acciones adicionales aquí según el servicio seleccionado.
+    }
+  </script>
+
+  <script
+    async
+    defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDjBzxn3jznfGTnyAJMby0fd13G5OMFAvY&libraries=places,distance_matrix"
+  ></script>
+</body>
+</html>
